@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+    <title>Register yourself</title>
+</head>
+
+<body>
+
+    <div class="container my-5">
+
+        <% if(error){ %>
+        <div class="alert alert-danger" role="alert">
+            <%= error %>
+        </div>
+        <% } %>
+        <h2 style="color: #AAA;"> Register Yourself : </h2>
+
+        <form method="POST" action="/submit" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="form-control" value="<%= data.name || '' %>" name="name" id="name"
+                    placeholder="Enter your name">
+
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">E-mail</label>
+                <input type="email" class="form-control" value="<%= data.email || '' %>" name="email" id="email"
+                    placeholder="Enter your E-mail">
+
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="text" class="form-control" value="<%= data.password || '' %>" name="password" id="password"
+                    placeholder="Enter your Password">
+
+            </div>
+            <div class="mb-3">
+                <label for="phone" class="form-label">Phone No.</label>
+                <input type="text" class="form-control" value="<%= data.phone || '' %>" name="phone" id="phone"
+                    placeholder="Enter your Phone number">
+
+            </div>
+            <div class="mb-3">
+                <label for="city" class="form-label">City</label>
+                <input type="text" class="form-control" value="<%= data.city || '' %>" name="city" id="city"
+                    placeholder="Enter your city">
+
+            </div>
+            <div class="mb-3">
+                <label for="about" class="form-label">About</label>
+                <textarea class="form-control"  name="about" id="about" placeholder="About Yourself..."></textarea>
+
+            </div>
+
+            <div class="mb-3">
+                <label for="image" class="form-label">Image</label>
+                <input type="file" class="form-control"  name="image" id="image"  >  
+                
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+
+
+    <script src="/jquery/js/jquery.js"></script>
+    <script src="/bootstrap/js/bootstrap.min.js"></script>
+
+
+</body>
+
+</html>
+
+
+
+<!-- validation , old data , redirect in next page (result [show all data]) -->
+<!-- laravel api to save data in database -->
