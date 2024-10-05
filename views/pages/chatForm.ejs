@@ -1,0 +1,12 @@
+<div class="flex-grow-0 py-3 px-4 border-top"></div>
+    <div class="input-group">
+        <form action="/chat/message" method="post" id="chatForm">
+            <input type="text" class="form-control message-box" placeholder="Type your message">
+            <input type="hidden" name="partnerId" class="partnerId" value="<%= partner._id %>">
+            <input type="hidden" name="authId" class="authId" value="<%= locals.loggedInUserId %>">
+            <input type="hidden" class="wcp-chat-count"  value="<%= chatCount %>">
+            <button type = "submit" class="btn btn-primary">Send</button>
+
+        </form>
+    </div>
+</div>

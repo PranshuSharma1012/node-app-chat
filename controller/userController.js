@@ -1,16 +1,17 @@
 const path = require('path')
 const bodyParser = require('body-parser')
-const session = require('express-session')
-const cookieParser = require('cookie-parser')
-const flash = require('connect-flash')
+// const session = require('express-session')
+// const cookieParser = require('cookie-parser')
+// const flash = require('connect-flash')
 const bcrypt = require('bcrypt')
 const express = require('express')
 const app = express()
-const {saveUser, checkLogin , userdata , getAllUsers , getPartnerDetail} = require('../helpers/userHelper')
+const {saveUser, checkLogin , userdata , getAllUsers , getPartnerDetail , getChat} = require('../helpers/userHelper')
 const { appendFile } = require('fs')
 const userModel = require('../model/userModel')
+const chatModel = require('../model/chatModel')
 const ejs = require('ejs')
-
+const mongoose = require('mongoose')
 app.set('view engine' , 'ejs')
 
 
@@ -55,17 +56,18 @@ let login = (req , res) => {
 
 let validateLogin = async (req , res) => {
     try{    
+        // console.log(`session inside login ${JSON.stringify(req.session)}`);
+        
         let data = req.body
 
         let result = await checkLogin(data , req)
 
         if (result.is_success) {
-
-            req.session.user_id = result.result.id
-
-            console.log(`the user id is : ${req.session.user_id}`);
-            
-
+            // console.log(` id is  ${result.result.id}`);
+            req.session.user_id = result.result._id
+            req.session.save()
+            app.set('authId' , req.session.user_id)
+            // console.log(`the user id is : ${req.session.user_id}`);
             res.redirect('/home')
         }
         else{
@@ -94,8 +96,10 @@ let validateLogin = async (req , res) => {
 
 
 let home = async (req , res) => {
-
-    let result = await getAllUsers()
+    
+    
+    let result = await getAllUsers(req)
+    console.log(result);  
 
     let partner = {}
 
@@ -103,16 +107,25 @@ let home = async (req , res) => {
 
         let partnerId = req.params['partnerId'] || result.users[0].id
 
+        let senderId = req.session.user_id
+
+        let chat = await getChat(senderId , partnerId )
+
         partner = await getPartnerDetail(partnerId) 
+     
+        let readUpdate = await chatModel.findOneAndUpdate({
+            senderId:partnerId,
+            reciverId:senderId
+        } , {is_read:1});
+        
+        res.render('pages/home' , {data:result.users , partner:partner , chat:chat , chatCount:chat.length , async:true}  , (error , promise)=> {
+            promise.then((html) => {
+                // console.log(html);
+                
+                res.send(html)
+            })
+        } )
 
-        console.log(` partner is : ${partner}`);
-        
-        // res.render('pages/home' , {data:result.users , partner:partner} )
-
-        const html = await ejs.renderFile('views/pages/home.ejs' , {data:result.users , partner:partner} , {async:true}) 
-        
-        res.send(html)
-        
     }
     else{
         res.send('No User Available')
@@ -120,10 +133,151 @@ let home = async (req , res) => {
 
 }
 
+let logout = (req , res) => {  
+
+    req.session.destroy()
+
+    res.redirect('/login')
+
+}
+
+let sendMessage = async (req , res) => {
+
+    let {message} = req.body
+    let {reciverId} = req.body
+    let senderId = req.session.user_id
+
+    // console.log(`${message} , ${senderId} , ${reciverId}`);
+    
+
+    const chatObj = new chatModel({
+        message:message,
+        reciverId:reciverId,
+        senderId:senderId,
+        is_read:0
+    })
+
+    let result = await chatObj.save()
+
+    // console.log(`senderId ${senderId} , reciverId ${reciverId} `);
+    
+    let chat = await chatModel.find({
+        $or:[
+            {$and:[{reciverId:`${new mongoose.Types.ObjectId(reciverId)}`} ,{senderId:`${new mongoose.Types.ObjectId(senderId)}`}]},
+            {$and:[{reciverId:`${new mongoose.Types.ObjectId(senderId)}`} ,{senderId:`${new mongoose.Types.ObjectId(reciverId)}`}]},
+        ]
+    }).populate(['senderId' , 'reciverId'])
+
+    // console.log(chat) 
+    
+    res.json({is_success:true})
+
+    // if (result) {
+    //     console.log('chat saved successfully');
+    // }
+    // else{
+    //     console.log('error saving chat');        
+    // }
+    
+}
+
+let chatHistory = async (req , res) => {
+
+    let reciverId = req.params.reciverId
+    let senderId = req.session.user_id
+
+    let chat = await getChat(senderId , reciverId)
+
+    res.render('pages/chatArea' , {chat:chat , async:true}  , (error , promise)=> {
+        promise.then((html) => {
+            // console.log(html);
+            
+            res.json({is_success:true , html:html , chatCount:chat.length})
+
+            // res.send(html)
+        })
+      
+        // console.log(html);
+        
+    })
+}
+
+let getProfile = async (req , res) => {
+    let authId = req.session.user_id
+
+    let data = await getPartnerDetail(authId)
+
+    res.render('pages/profile' , {data:data})
+}
+
+let updateProfileForm = async (req , res) => {
+
+    let authId = req.session.user_id
+
+    let data = await getPartnerDetail(authId)
+
+    res.render('pages/profileUpdate' , {data:data , async:true} , (error , promise) => {
+        promise.then((html) => {
+
+            res.send(html)
+
+        })
+    })
+
+}
+
+let updateProfile = async (req ,res) => {
+    let {name, email, phone, city , about} = req.body
+    let authId = req.session.user_id
+
+    let filter = {
+        _id:authId
+    }
+
+    // update image 
+
+    let image = req.file.filename
+    // console.log(` the image name is ${req.file.filename}`);
+
+    if (image) {
+        let updateData = {
+            name, email, phone, city , about , image
+        }
+        let result = await userModel.findOneAndUpdate(filter, updateData);
+    
+        if (result) {
+            req.flash('success' , 'Updated Successfully')
+            // console.log('image update success')            
+        }
+    }
+    else{
+
+        let updateData = {
+            name, email, phone, city , about 
+        }
+        let result = await userModel.findOneAndUpdate(filter, updateData);
+    
+        if (result) {
+            req.flash('success' , 'Updated Successfully')
+            // console.log('image update failed')
+        }
+    }
+
+
+    res.redirect('/profile')
+}
+
 module.exports = {
     register,
     addUser,
     login,
     validateLogin,
-    home
+    home,
+    logout,
+    sendMessage,
+    chatHistory,
+    getProfile,
+    updateProfileForm,
+    updateProfile,
+    app
 }

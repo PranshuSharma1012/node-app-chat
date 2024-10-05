@@ -2,32 +2,39 @@
 <html lang="en">
 
 <head>
-    <%- include('../partials/chatHead') %>
+    <%- await include('../partials/chatHead') %>
 </head>
 
 <body>
-    <%- include('../partials/header') %>
+    <%- await include('../partials/header') %>
 
-
+    
         <main class="content"></main>
         <div class="container p-0 my-3">
 
-            <h1 class="h3 mb-3">Messages</h1>
+            <h1 class="h3 mb-3">Online Users : <span class="online-user-count" ></span></h1>
 
-            <div class="card">
+            <div class="card">  
                 <div class="row g-0">
 
                     <!-- chat sidebar -->
-                    <!-- <%- include('./chatSidebar') %> -->
+                    <%- await include('./chatSidebar') %>
                     
                     
                     <div class="col-12 col-lg-7 col-xl-9">
                         <!-- chat header -->
-                        <%- include('./chatHeader') %>
+                        <%- await include('./chatHeader') %>
                         
                         
                         <!-- chat area -->
-                        <%- include('./chatArea') %>
+                         <div class="wcp-chat-body">
+
+                             <%- await include('./chatArea') %>
+
+                         </div>
+
+                        <!-- chat form -->
+                        <%- await include('./chatForm') %>
                         
 
                     </div>
@@ -38,7 +45,9 @@
 
 
 
-        <%- include('../partials/chatfooter') %>
+        <%- await include('../partials/chatfooter') %>
+
+
 </body>
 
 </html>

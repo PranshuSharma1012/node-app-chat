@@ -3,7 +3,9 @@ const cookieParser = require('cookie-parser')
 const flash = require('connect-flash')
 const path = require('path')
 const userModel = require('../model/userModel')
+const chatModel = require('../model/chatModel')
 const bcrypt = require('bcrypt')
+const mongoose = require('mongoose')
 
 
 
@@ -65,10 +67,27 @@ let checkLogin = async (data, req) => {
     }
 }
 
-let getAllUsers = async()=>{
+let getAllUsers = async(req)=>{
 
-    let users = await userModel.find({})
+    let authId = req.session.user_id
 
+    let users = await userModel.aggregate([
+        {
+            $lookup:{
+                from:'chats',
+                localField:'_id',
+                foreignField:'senderId',
+                as:'chatCount',
+            },
+            $match:{
+                $and:[
+                    {
+                        reciverId:authId
+                    }
+                ]
+            }
+        }
+    ])
 
     if (users) {
         return {is_success:true,
@@ -90,10 +109,25 @@ let getPartnerDetail = async (partnerId) => {
 
 }
 
+let getChat = async (senderId , reciverId) => {
+
+    // reciverId = '66e92bf2f07f64750a188ff9'
+
+    let chat = await chatModel.find({
+        $or:[
+            {$and:[{reciverId:`${new mongoose.Types.ObjectId(reciverId)}`} ,{senderId:`${new mongoose.Types.ObjectId(senderId)}`}]},
+            {$and:[{reciverId:`${new mongoose.Types.ObjectId(senderId)}`} ,{senderId:`${new mongoose.Types.ObjectId(reciverId)}`}]},
+        ]
+    }).populate(['senderId' , 'reciverId'])
+
+    return chat
+}
+
 module.exports = {
     saveUser,
     checkLogin,
     getAllUsers,
-    getPartnerDetail
+    getPartnerDetail,
+    getChat
     
 }

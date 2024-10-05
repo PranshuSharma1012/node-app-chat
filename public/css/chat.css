@@ -1,4 +1,9 @@
-body{margin-top:20px;}
+/* body{margin-top:20px;} */
+
+.wcp-chat-body{
+    max-height: 400px; 
+    overflow-y: scroll;
+}
 
 .chat-online {
     color: #34ce57
@@ -11,8 +16,8 @@ body{margin-top:20px;}
 .chat-messages {
     display: flex;
     flex-direction: column;
-    max-height: 800px;
-    overflow-y: scroll
+    /* max-height: 600px;
+    overflow-y: scroll */
 }
 
 .chat-message-left,

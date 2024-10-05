@@ -4,6 +4,7 @@ const path = require('path')
 const userController = require('../controller/userController')
 const multer = require('multer')
 const asyncHandler = require('express-async-handler')
+const checkLogin = require('../middleware/authMiddleware')
 
 function checkFileType(req , file, cb) {
     const filetypes = /jpeg|jpg|png|gif/;
@@ -47,8 +48,20 @@ router.post('/submit', upload.single('image') , asyncHandler(userController.addU
 
 router.get('/login' , userController.login)
 
+router.get('/logout' , userController.logout)
+
 router.post('/validateLogin' , userController.validateLogin)
 
-router.get('/home/:partnerId?' , asyncHandler(userController.home))
+router.get('/home/:partnerId?', checkLogin , asyncHandler(userController.home))
+
+router.post('/chat/message' , asyncHandler(userController.sendMessage))
+
+router.get('/chatHistory/:reciverId' , asyncHandler(userController.chatHistory))
+
+router.get('/profile' , asyncHandler(userController.getProfile))
+
+router.get('/profile/update' , asyncHandler(userController.updateProfileForm))
+
+router.post('/update/profile' , upload.single('image') , asyncHandler(userController.updateProfile))
 
 module.exports = router

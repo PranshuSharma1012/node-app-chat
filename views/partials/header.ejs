@@ -1,7 +1,11 @@
+<% 
+    let userData = await locals.authInfo(locals.loggedInUserId)
 
+
+%>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">  name </a>
+        <a class="navbar-brand" href="#">  <%= userData.name %> </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -29,7 +33,10 @@
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+                    <a class="nav-link " aria-disabled="true" href="/logout">LogOut</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link " aria-disabled="true" href="/profile">Profile</a>
                 </li>
             </ul>
             <form class="d-flex" role="search">
